@@ -1,0 +1,669 @@
+{% extends 'portal/base.html' %}
+{% block title %}{{ item.title }} - Lost and Found Portal{% endblock %}
+
+{% block content %}
+<div class="item-detail-container">
+    <div class="row">
+        <!-- Item Image Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="item-image-section">
+                {% if item.image and item.image.name %}
+                    <div class="item-image-wrapper">
+                        <img src="{{ item.image.url }}" class="item-image" alt="{{ item.title }}" id="itemImage">
+                        <div class="image-overlay">
+                            <button class="btn btn-light btn-sm" onclick="openImageModal()">
+                                <i class="fas fa-expand-arrows-alt"></i> View Full Size
+                            </button>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <h5>No Image Available</h5>
+                        <p>This item doesn't have an image</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Item Details Section -->
+        <div class="col-lg-6">
+            <div class="item-details-card">
+                <!-- Item Header -->
+                <div class="item-header mb-4">
+                    <div class="item-category-badge">
+                        <span class="badge {% if item.category == 'Lost' %}bg-danger{% else %}bg-success{% endif %}">
+                            <i class="fas {% if item.category == 'Lost' %}fa-exclamation-triangle{% else %}fa-hand-holding-heart{% endif %} me-2"></i>
+                            {{ item.category }}
+                        </span>
+                    </div>
+                    <h1 class="item-title">{{ item.title }}</h1>
+                    <div class="item-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-calendar text-muted"></i>
+                            Posted on {{ item.date_posted|date:"F d, Y" }}
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-user text-muted"></i>
+                            by {{ item.user.username }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Item Description -->
+                <div class="item-section mb-4">
+                    <h5 class="section-title">
+                        <i class="fas fa-align-left me-2"></i>Description
+                    </h5>
+                    <div class="section-content">
+                        <p>{{ item.description }}</p>
+                    </div>
+                </div>
+
+                <!-- Item Details -->
+                <div class="item-section mb-4">
+                    <h5 class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>Details
+                    </h5>
+                    <div class="details-grid">
+                        {% if item.location %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label>Location</label>
+                                    <span>{{ item.location }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if item.contact_info %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label>Contact Information</label>
+                                    <span>{{ item.contact_info }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if item.additional_details %}
+                            <div class="detail-item full-width">
+                                <div class="detail-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label>Additional Details</label>
+                                    <span>{{ item.additional_details }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="item-actions">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <button class="btn btn-primary w-100" onclick="contactOwner()">
+                                <i class="fas fa-envelope me-2"></i>
+                                Contact Owner
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="shareItem()">
+                                <i class="fas fa-share me-2"></i>
+                                Share Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <a href="{% url 'home' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Back to Items
+                            </a>
+                        </div>
+                    </div>
+                    {% if user.is_authenticated and user == item.user %}
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <a href="{% url 'edit_item' item.pk %}" class="btn btn-warning w-100">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'delete_item' item.pk %}" class="btn btn-danger w-100">
+                                <i class="fas fa-trash-alt me-2"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Report Section -->
+                {% if user.is_authenticated and user != item.user %}
+                    <div class="report-section mt-4">
+                        <div class="text-center">
+                            <button class="btn btn-link text-muted" onclick="reportItem()">
+                                <i class="fas fa-flag me-2"></i>
+                                Report this item
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar Items Section -->
+    <div class="similar-items-section mt-5">
+        <h3 class="section-title">
+            <i class="fas fa-th-large me-2"></i>
+            Similar Items
+        </h3>
+        <div class="row">
+            <!-- This would be populated with similar items from the backend -->
+            <div class="col-12">
+                <div class="empty-state text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No similar items found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if item.image and item.image.name %}
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ item.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ item.image.url }}" class="img-fluid" alt="{{ item.title }}">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .item-detail-container {
+        padding: 2rem 0;
+    }
+
+    /* Item Image Section */
+    .item-image-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .item-image-wrapper {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+    }
+
+    .item-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .item-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .item-image-wrapper:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .no-image-placeholder {
+        height: 400px;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+    }
+
+    .no-image-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Item Details Card */
+    .item-details-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        height: 100%;
+    }
+
+    .item-header {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1.5rem;
+    }
+
+    .item-category-badge {
+        margin-bottom: 1rem;
+    }
+
+    .item-category-badge .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+    }
+
+    .item-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .item-meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    /* Item Sections */
+    .item-section {
+        padding-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-content {
+        color: var(--text-color);
+        line-height: 1.6;
+    }
+
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+
+    .detail-item:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .detail-content {
+        flex: 1;
+    }
+
+    .detail-content label {
+        display: block;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .detail-content span {
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+
+    /* Action Buttons */
+    .item-actions {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 1.5rem;
+    }
+
+    .item-actions .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+
+    .item-actions .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+    }
+
+    .item-actions .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .item-actions .btn-outline-secondary:hover,
+    .item-actions .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Report Section */
+    .report-section {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 1rem;
+    }
+
+    .report-section .btn-link {
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .report-section .btn-link:hover {
+        color: var(--danger-color) !important;
+    }
+
+    /* Similar Items Section */
+    .similar-items-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+    }
+
+    .similar-items-section .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--dark-color);
+    }
+
+    .empty-state {
+        color: var(--text-color);
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: var(--border-radius);
+        border: none;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    /* Comments Section */
+    .comments-section .section-title {
+        color: var(--dark-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .comments-section .card {
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        background: #f8f9fa;
+    }
+
+    .comments-section .card-body {
+        padding: 1rem;
+    }
+
+    .comments-section .card-body .d-flex {
+        gap: 0.5rem;
+    }
+
+    .comments-section .card-body .fw-bold {
+        color: var(--primary-color);
+    }
+
+    .comments-section .card-body .text-muted {
+        font-size: 0.9rem;
+    }
+
+    .comments-section .alert {
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        background: #f8f9fa;
+    }
+
+    .comments-section .alert a {
+        color: var(--primary-color);
+        text-decoration: underline;
+    }
+
+    /* Claim Section */
+    .claim-section .section-title {
+        color: var(--dark-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .claim-section .form-control {
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        background: #f8f9fa;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        color: var(--text-color);
+    }
+
+    .claim-section .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+
+    .claim-section .btn-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+
+    .claim-section .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .item-detail-container {
+            padding: 1rem;
+        }
+        
+        .item-details-card {
+            padding: 1.5rem;
+        }
+        
+        .item-title {
+            font-size: 1.5rem;
+        }
+        
+        .item-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .item-image-wrapper {
+            height: 300px;
+        }
+        
+        .no-image-placeholder {
+            height: 300px;
+        }
+        
+        .similar-items-section {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Animation */
+    .item-details-card {
+        animation: slideInRight 0.6s ease-out;
+    }
+
+    .item-image-section {
+        animation: slideInLeft 0.6s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Image modal functionality
+function openImageModal() {
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+// Contact owner functionality
+function contactOwner() {
+    const contactInfo = '{{ item.contact_info }}';
+    const itemTitle = '{{ item.title }}';
+    
+    if (contactInfo) {
+        // Check if it's an email
+        if (contactInfo.includes('@')) {
+            window.location.href = `mailto:${contactInfo}?subject=Regarding your ${item.category.toLowerCase()} item: ${itemTitle}`;
+        } else {
+            // Assume it's a phone number
+            window.location.href = `tel:${contactInfo}`;
+        }
+    } else {
+        alert('No contact information available for this item.');
+    }
+}
+
+// Share item functionality
+function shareItem() {
+    const url = window.location.href;
+    const title = '{{ item.title }}';
+    const text = 'Check out this {{ item.category.lower }} item on Lost and Found Portal';
+    
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: text,
+            url: url
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(url).then(function() {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+
+// Report item functionality
+function reportItem() {
+    const itemId = '{{ item.id }}';
+    const itemTitle = '{{ item.title }}';
+    
+    if (confirm(`Are you sure you want to report "${itemTitle}"?`)) {
+        // Here you would typically send a report to the backend
+        alert('Thank you for your report. We will review this item shortly.');
+    }
+}
+
+// Add loading states to buttons
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (!this.classList.contains('btn-link')) {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="loading"></span> Loading...';
+            this.disabled = true;
+            
+            // Re-enable after 3 seconds as fallback
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 3000);
+        }
+    });
+});
+</script>
+{% endblock %}
