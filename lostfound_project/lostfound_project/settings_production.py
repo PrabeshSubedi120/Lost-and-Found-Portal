@@ -5,6 +5,7 @@ Production settings for lostfound_project project.
 from .settings import *
 import os
 from pathlib import Path
+import dj_database_url
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -12,23 +13,19 @@ DEBUG = False
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
-# Production hosts
+# Production hosts - Render will provide the actual domain
 ALLOWED_HOSTS = [
-    'your-app-name.onrender.com',  # Replace with your actual domain
+    '.onrender.com',  # Allow all Render subdomains
     'localhost',
     '127.0.0.1',
 ]
 
-# Database - Use environment variable for production
+# Database - Use DATABASE_URL from Render
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'lostfound_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    )
 }
 
 # Static files (CSS, JavaScript, Images)

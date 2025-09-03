@@ -3,8 +3,8 @@ services:
     name: lostfound-portal
     env: python
     plan: free
-    buildCommand: pip install -r requirements_production.txt
-    startCommand: gunicorn lostfound_project.wsgi:application
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: cd lostfound_project && gunicorn lostfound_project.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.4
