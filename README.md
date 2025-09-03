@@ -107,20 +107,6 @@ Lost-and-Found-Portal/
 └── README.md                  # This file
 ```
 
-## Virtual Environment Management
-
-### Why Virtual Environment?
-
-- **Isolation**: Keeps project dependencies separate from system Python
-- **Version Control**: Ensures consistent Python package versions across different machines
-- **Clean Environment**: Prevents conflicts between different projects
-
-### Important Notes
-
-- **NEVER commit the `venv/` folder to Git** - it's already in `.gitignore`
-- Each developer should create their own virtual environment
-- The virtual environment is platform-specific (Windows vs Linux/Mac)
-
 ### Common Issues & Solutions
 
 #### Issue: Virtual environment not activating
@@ -145,13 +131,6 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Development
-
-### Running Tests
-```bash
-python manage.py test
-```
-
 ### Creating New Migrations
 ```bash
 python manage.py makemigrations
@@ -167,22 +146,6 @@ python manage.py migrate
 python manage.py collectstatic
 ```
 
-## Deployment
-
-### Production Settings
-- Update `DEBUG = False` in settings.py
-- Configure proper database (PostgreSQL recommended)
-- Set up static file serving
-- Configure environment variables for sensitive data
-
-### Environment Variables
-Create a `.env` file (not committed to Git) with:
-```
-SECRET_KEY=your-secret-key
-DEBUG=False
-DATABASE_URL=your-database-url
-```
-
 ## Contributing
 
 1. Fork the repository
@@ -191,9 +154,6 @@ DATABASE_URL=your-database-url
 4. Test thoroughly
 5. Submit a pull request
 
-## License
-
-[Your License Here]
 
 ## Support
 
