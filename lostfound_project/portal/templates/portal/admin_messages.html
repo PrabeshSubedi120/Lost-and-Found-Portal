@@ -1,0 +1,267 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Manage Messages - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-envelope text-warning"></i> Manage Messages</h2>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <label for="search" class="form-label">Search Messages</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search_query }}" placeholder="Content, sender, recipient, item title...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="read" class="form-label">Status</label>
+                            <select class="form-select" id="read" name="read">
+                                <option value="all" {% if read_filter == 'all' %}selected{% endif %}>All Messages</option>
+                                <option value="read" {% if read_filter == 'read' %}selected{% endif %}>Read Only</option>
+                                <option value="unread" {% if read_filter == 'unread' %}selected{% endif %}>Unread Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Messages List 
+                        <span class="badge bg-primary">{{ messages.paginator.count }} total</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="border-bottom p-3 {% if forloop.last %}border-bottom-0{% endif %} {% if not message.is_read %}bg-light{% endif %}">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="d-flex align-items-start">
+                                    {% if message.sender.profile.avatar %}
+                                    <img src="{{ message.sender.profile.avatar.url }}" class="rounded-circle me-3" 
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center text-white" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="mb-0 me-2">{{ message.sender.username }}</h6>
+                                            <i class="fas fa-arrow-right text-muted mx-2"></i>
+                                            <h6 class="mb-0 me-2">{{ message.recipient.username }}</h6>
+                                            <small class="text-muted">{{ message.created_at|timesince }} ago</small>
+                                            {% if not message.is_read %}
+                                            <span class="badge bg-warning ms-2">Unread</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <p class="mb-2">{{ message.content }}</p>
+                                        
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="fas fa-box me-1"></i>
+                                            <span>About: </span>
+                                            <a href="{% url 'item_detail' message.item.id %}" class="text-decoration-none me-3">
+                                                {{ message.item.title }}
+                                            </a>
+                                            <span class="badge bg-{% if message.item.category == 'Lost' %}danger{% else %}success{% endif %} me-2">
+                                                {{ message.item.category }}
+                                            </span>
+                                            <span class="badge bg-{% if message.item.status == 'Open' %}warning{% else %}success{% endif %}">
+                                                {{ message.item.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 text-end">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="{% url 'item_detail' message.item.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View Item
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteMessage({{ message.id }}, '{{ message.sender.username|escapejs }}', '{{ message.recipient.username|escapejs }}', '{{ message.content|escapejs|truncatewords:10 }}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-2 small text-muted">
+                                    <div><i class="fas fa-calendar"></i> {{ message.created_at|date:"M d, Y H:i" }}</div>
+                                    <div>
+                                        <i class="fas fa-{% if message.is_read %}check-circle text-success{% else %}circle text-warning{% endif %}"></i>
+                                        {% if message.is_read %}Read{% else %}Unread{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-envelope fa-4x mb-3"></i>
+                        <h5>No messages found</h5>
+                        <p>No messages match your current search criteria.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if messages.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Messages pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if messages.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if read_filter != 'all' %}&read={{ read_filter }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if read_filter != 'all' %}&read={{ read_filter }}{% endif %}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ messages.number }} of {{ messages.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if messages.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if read_filter != 'all' %}&read={{ read_filter }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if read_filter != 'all' %}&read={{ read_filter }}{% endif %}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Message Confirmation Modal -->
+<div class="custom-modal" id="deleteMessageModal">
+    <div class="custom-modal-dialog">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="fas fa-exclamation-triangle me-2"></i>Delete Message
+            </h5>
+            <button type="button" class="custom-modal-close" onclick="hideCustomModal('deleteMessageModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <div class="text-center mb-4">
+                <div class="text-danger mb-3">
+                    <i class="fas fa-envelope-open-text fa-4x"></i>
+                </div>
+                <h5 class="text-danger mb-3">⚠️ This action cannot be undone! ⚠️</h5>
+            </div>
+            
+            <div class="alert alert-warning border-0">
+                <h6 class="alert-heading">You are about to permanently delete:</h6>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3"><strong>📤 From:</strong></div>
+                    <div class="col-sm-9" id="deleteMessageSender"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>📥 To:</strong></div>
+                    <div class="col-sm-9" id="deleteMessageRecipient"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>💬 Message:</strong></div>
+                    <div class="col-sm-9" id="deleteMessageContent"></div>
+                </div>
+            </div>
+            
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="confirmMessageDeletion" onchange="toggleMessageDeleteButton()">
+                <label class="form-check-label fw-bold" for="confirmMessageDeletion">
+                    I understand this action is permanent and cannot be undone
+                </label>
+            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="hideCustomModal('deleteMessageModal')">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteMessageBtn" disabled onclick="executeMessageDeletion()">
+                <i class="fas fa-trash me-2"></i>Delete Permanently
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for admin actions -->
+<script>
+let currentMessageId = null;
+
+function deleteMessage(messageId, sender, recipient, content) {
+    currentMessageId = messageId;
+    
+    // Populate modal with message information
+    document.getElementById('deleteMessageSender').textContent = sender;
+    document.getElementById('deleteMessageRecipient').textContent = recipient;
+    document.getElementById('deleteMessageContent').textContent = content;
+    
+    // Reset confirmation checkbox
+    document.getElementById('confirmMessageDeletion').checked = false;
+    document.getElementById('confirmDeleteMessageBtn').disabled = true;
+    
+    // Show the custom modal
+    showCustomModal('deleteMessageModal');
+}
+
+function toggleMessageDeleteButton() {
+    const checkbox = document.getElementById('confirmMessageDeletion');
+    const deleteBtn = document.getElementById('confirmDeleteMessageBtn');
+    
+    if (checkbox && deleteBtn) {
+        deleteBtn.disabled = !checkbox.checked;
+    }
+}
+
+function executeMessageDeletion() {
+    const checkbox = document.getElementById('confirmMessageDeletion');
+    
+    if (currentMessageId && checkbox && checkbox.checked) {
+        const deleteUrl = `{% url 'admin_delete_message' 0 %}`.replace('0', currentMessageId);
+        window.location.href = deleteUrl;
+    } else {
+        alert('Please check the confirmation checkbox first.');
+    }
+}
+</script>
+{% endblock %}

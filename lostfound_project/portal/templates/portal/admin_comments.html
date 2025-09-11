@@ -1,0 +1,307 @@
+{% extends 'portal/base.html' %} {% block title %}Manage Comments - Admin
+Panel{% endblock %} {% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-comments text-info"></i> Manage Comments</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <form method="get" class="row g-3">
+            <div class="col-md-10">
+              <label for="search" class="form-label">Search Comments</label>
+              <input
+                type="text"
+                class="form-control"
+                id="search"
+                name="search"
+                value="{{ search_query }}"
+                placeholder="Content, username, item title..."
+              />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search"></i> Search
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments List -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-list"></i> Comments List
+            <span class="badge bg-primary"
+              >{{ comments.paginator.count }} total</span
+            >
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          {% if comments %} {% for comment in comments %}
+          <div
+            class="border-bottom p-3 {% if forloop.last %}border-bottom-0{% endif %}"
+          >
+            <div class="row">
+              <div class="col-md-8">
+                <div class="d-flex align-items-start">
+                  {% if comment.user.profile.avatar %}
+                  <img
+                    src="{{ comment.user.profile.avatar.url }}"
+                    class="rounded-circle me-3"
+                    style="width: 40px; height: 40px; object-fit: cover"
+                  />
+                  {% else %}
+                  <div
+                    class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center text-white"
+                    style="width: 40px; height: 40px"
+                  >
+                    <i class="fas fa-user"></i>
+                  </div>
+                  {% endif %}
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                      <h6 class="mb-0 me-2">{{ comment.user.username }}</h6>
+                      <small class="text-muted"
+                        >{{ comment.created_at|timesince }} ago</small
+                      >
+                    </div>
+
+                    <p class="mb-2">{{ comment.content }}</p>
+
+                    <div class="d-flex align-items-center text-muted small">
+                      <i class="fas fa-box me-1"></i>
+                      <a
+                        href="{% url 'item_detail' comment.item.id %}"
+                        class="text-decoration-none me-3"
+                      >
+                        {{ comment.item.title }}
+                      </a>
+                      <span
+                        class="badge bg-{% if comment.item.category == 'Lost' %}danger{% else %}success{% endif %} me-2"
+                      >
+                        {{ comment.item.category }}
+                      </span>
+                      <span
+                        class="badge bg-{% if comment.item.status == 'Open' %}warning{% else %}success{% endif %}"
+                      >
+                        {{ comment.item.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4 text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                  <a
+                    href="{% url 'item_detail' comment.item.id %}"
+                    class="btn btn-sm btn-outline-primary"
+                  >
+                    <i class="fas fa-eye"></i> View Item
+                  </a>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    onclick="deleteComment({{ comment.id }}, '{{ comment.user.username|escapejs }}', '{{ comment.content|escapejs|truncatewords:10 }}')"
+                  >
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+
+                <div class="mt-2 small text-muted">
+                  <div>
+                    <i class="fas fa-calendar"></i> {{
+                    comment.created_at|date:"M d, Y H:i" }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="fas fa-comments fa-4x mb-3"></i>
+            <h5>No comments found</h5>
+            <p>No comments match your current search criteria.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if comments.has_other_pages %}
+        <div class="card-footer">
+          <nav aria-label="Comments pagination">
+            <ul class="pagination justify-content-center mb-0">
+              {% if comments.has_previous %}
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}"
+                  >First</a
+                >
+              </li>
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page={{ comments.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                  >Previous</a
+                >
+              </li>
+              {% endif %}
+
+              <li class="page-item active">
+                <span class="page-link">
+                  Page {{ comments.number }} of {{ comments.paginator.num_pages
+                  }}
+                </span>
+              </li>
+
+              {% if comments.has_next %}
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page={{ comments.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                  >Next</a
+                >
+              </li>
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page={{ comments.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                  >Last</a
+                >
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Comment Confirmation Modal -->
+<div class="custom-modal" id="deleteCommentModal">
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="custom-modal-title">
+        <i class="fas fa-exclamation-triangle me-2"></i>Delete Comment
+      </h5>
+      <button
+        type="button"
+        class="custom-modal-close"
+        onclick="hideCustomModal('deleteCommentModal')"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="custom-modal-body">
+      <div class="text-center mb-4">
+        <div class="text-danger mb-3">
+          <i class="fas fa-comment-slash fa-4x"></i>
+        </div>
+        <h5 class="text-danger mb-3">⚠️ This action cannot be undone! ⚠️</h5>
+      </div>
+
+      <div class="alert alert-warning border-0">
+        <h6 class="alert-heading">You are about to permanently delete:</h6>
+        <hr />
+        <div class="row">
+          <div class="col-sm-3"><strong>👤 User:</strong></div>
+          <div class="col-sm-9" id="deleteCommentUser"></div>
+        </div>
+        <div class="row">
+          <div class="col-sm-3"><strong>💬 Comment:</strong></div>
+          <div class="col-sm-9" id="deleteCommentContent"></div>
+        </div>
+      </div>
+
+      <div class="form-check mt-4">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="confirmCommentDeletion"
+          onchange="toggleCommentDeleteButton()"
+        />
+        <label class="form-check-label fw-bold" for="confirmCommentDeletion">
+          I understand this action is permanent and cannot be undone
+        </label>
+      </div>
+    </div>
+    <div class="custom-modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        onclick="hideCustomModal('deleteCommentModal')"
+      >
+        <i class="fas fa-times me-2"></i>Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        id="confirmDeleteCommentBtn"
+        disabled
+        onclick="executeCommentDeletion()"
+      >
+        <i class="fas fa-trash me-2"></i>Delete Permanently
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for admin actions -->
+<script>
+  let currentCommentId = null;
+
+  function deleteComment(commentId, username, content) {
+    currentCommentId = commentId;
+
+    // Populate modal with comment information
+    document.getElementById("deleteCommentUser").textContent = username;
+    document.getElementById("deleteCommentContent").textContent = content;
+
+    // Reset confirmation checkbox
+    document.getElementById("confirmCommentDeletion").checked = false;
+    document.getElementById("confirmDeleteCommentBtn").disabled = true;
+
+    // Show the custom modal
+    showCustomModal("deleteCommentModal");
+  }
+
+  function toggleCommentDeleteButton() {
+    const checkbox = document.getElementById("confirmCommentDeletion");
+    const deleteBtn = document.getElementById("confirmDeleteCommentBtn");
+    
+    if (checkbox && deleteBtn) {
+      deleteBtn.disabled = !checkbox.checked;
+    }
+  }
+
+  function executeCommentDeletion() {
+    const checkbox = document.getElementById("confirmCommentDeletion");
+    
+    if (currentCommentId && checkbox && checkbox.checked) {
+      const deleteUrl = `{% url 'admin_delete_comment' 0 %}`.replace("0", currentCommentId);
+      window.location.href = deleteUrl;
+    } else {
+      alert('Please check the confirmation checkbox first.');
+    }
+  }
+</script>
+{% endblock %}

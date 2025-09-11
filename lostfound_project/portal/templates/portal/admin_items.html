@@ -1,0 +1,275 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Manage Items - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-boxes text-success"></i> Manage Items</h2>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search Items</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search_query }}" placeholder="Title, description, location...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
+                                <option value="Lost" {% if category_filter == 'Lost' %}selected{% endif %}>Lost Items</option>
+                                <option value="Found" {% if category_filter == 'Found' %}selected{% endif %}>Found Items</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                                <option value="Open" {% if status_filter == 'Open' %}selected{% endif %}>Open</option>
+                                <option value="Recovered" {% if status_filter == 'Recovered' %}selected{% endif %}>Recovered</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Items List 
+                        <span class="badge bg-primary">{{ items.paginator.count }} total</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if items %}
+                    <div class="row">
+                        {% for item in items %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                {% if item.image %}
+                                <img src="{{ item.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ item.title }}</h6>
+                                        <div>
+                                            <span class="badge bg-{% if item.category == 'Lost' %}danger{% else %}success{% endif %}">
+                                                {{ item.category }}
+                                            </span>
+                                            <span class="badge bg-{% if item.status == 'Open' %}warning{% else %}success{% endif %}">
+                                                {{ item.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="card-text small text-muted">
+                                        {{ item.description|truncatewords:15 }}
+                                    </p>
+                                    
+                                    <div class="small text-muted mb-2">
+                                        <div><i class="fas fa-map-marker-alt"></i> {{ item.location }}</div>
+                                        <div><i class="fas fa-calendar"></i> {{ item.date }}</div>
+                                        <div><i class="fas fa-user"></i> {{ item.user.username }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'item_detail' item.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-{% if item.status == 'Open' %}success{% else %}warning{% endif %} flex-fill" 
+                                                onclick="toggleItemStatus({{ item.id }}, '{{ item.title|escapejs }}', '{{ item.status }}')">
+                                            <i class="fas fa-{% if item.status == 'Open' %}check{% else %}undo{% endif %}"></i>
+                                            {% if item.status == 'Open' %}Mark Recovered{% else %}Mark Open{% endif %}
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteItem({{ item.id }}, '{{ item.title|escapejs }}', '{{ item.category }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-boxes fa-4x mb-3"></i>
+                        <h5>No items found</h5>
+                        <p>No items match your current search criteria.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if items.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Items pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if items.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ items.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ items.number }} of {{ items.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if items.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ items.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ items.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Item Confirmation Modal -->
+<div class="custom-modal" id="deleteItemModal">
+    <div class="custom-modal-dialog">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="fas fa-exclamation-triangle me-2"></i>Delete Item
+            </h5>
+            <button type="button" class="custom-modal-close" onclick="hideCustomModal('deleteItemModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <div class="text-center mb-4">
+                <div class="text-danger mb-3">
+                    <i class="fas fa-box-open fa-4x"></i>
+                </div>
+                <h5 class="text-danger mb-3">⚠️ This action cannot be undone! ⚠️</h5>
+            </div>
+            
+            <div class="alert alert-warning border-0">
+                <h6 class="alert-heading">You are about to permanently delete:</h6>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3"><strong>📦 Item:</strong></div>
+                    <div class="col-sm-9" id="deleteItemTitle"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>📋 Category:</strong></div>
+                    <div class="col-sm-9" id="deleteItemCategory"></div>
+                </div>
+            </div>
+            
+            <div class="alert alert-danger border-0">
+                <h6 class="alert-heading mb-3">This will also permanently delete:</h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-comments text-danger me-2"></i>All comments on this item</li>
+                    <li><i class="fas fa-envelope text-danger me-2"></i>All messages related to this item</li>
+                    <li><i class="fas fa-image text-danger me-2"></i>Associated images and files</li>
+                </ul>
+            </div>
+            
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="confirmItemDeletion" onchange="toggleItemDeleteButton()">
+                <label class="form-check-label fw-bold" for="confirmItemDeletion">
+                    I understand this action is permanent and cannot be undone
+                </label>
+            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="hideCustomModal('deleteItemModal')">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteItemBtn" disabled onclick="executeItemDeletion()">
+                <i class="fas fa-trash me-2"></i>Delete Permanently
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for admin actions -->
+<script>
+let currentItemId = null;
+
+function toggleItemStatus(itemId, title, currentStatus) {
+    const newStatus = currentStatus === 'Open' ? 'Recovered' : 'Open';
+    if (confirm(`Are you sure you want to mark "${title}" as ${newStatus}?`)) {
+        window.location.href = `{% url 'admin_item_toggle_status' 0 %}`.replace('0', itemId);
+    }
+}
+
+function deleteItem(itemId, title, category) {
+    currentItemId = itemId;
+    
+    // Populate modal with item information
+    document.getElementById('deleteItemTitle').textContent = title;
+    document.getElementById('deleteItemCategory').textContent = category;
+    
+    // Reset confirmation checkbox
+    document.getElementById('confirmItemDeletion').checked = false;
+    document.getElementById('confirmDeleteItemBtn').disabled = true;
+    
+    // Show the custom modal
+    showCustomModal('deleteItemModal');
+}
+
+function toggleItemDeleteButton() {
+    const checkbox = document.getElementById('confirmItemDeletion');
+    const deleteBtn = document.getElementById('confirmDeleteItemBtn');
+    
+    if (checkbox && deleteBtn) {
+        deleteBtn.disabled = !checkbox.checked;
+    }
+}
+
+function executeItemDeletion() {
+    const checkbox = document.getElementById('confirmItemDeletion');
+    
+    if (currentItemId && checkbox && checkbox.checked) {
+        const deleteUrl = `{% url 'admin_delete_item' 0 %}`.replace('0', currentItemId);
+        window.location.href = deleteUrl;
+    } else {
+        alert('Please check the confirmation checkbox first.');
+    }
+}
+</script>
+{% endblock %}

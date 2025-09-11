@@ -6,6 +6,26 @@
     <div class="d-flex justify-content-center">
         <div>
             <div class="auth-card">
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if 'registration' in message.message|lower or 'account' in message.message|lower %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show mb-4" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                {% if message.tags == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% elif message.tags == 'error' %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% elif message.tags == 'warning' %}
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                
                 <div class="auth-header text-center mb-5">
                     <div class="auth-icon">
                         <i class="fas fa-user-plus"></i>
@@ -15,7 +35,7 @@
                 </div>
 
                 <form method="post" class="auth-form">
-    {% csrf_token %}
+                    {% csrf_token %}
                     
                     {% if form.errors %}
                         <div class="alert alert-danger" role="alert">
@@ -152,7 +172,7 @@
                             </a>
                         </p>
                     </div>
-</form>
+                </form>
 
                 <div class="auth-footer text-center mt-5">
                     <div class="divider">
@@ -283,7 +303,7 @@
         transition: var(--transition);
     }
 
-    .auth-form .btn-primary:hover {
+    .auth-form .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
     }
@@ -291,7 +311,6 @@
     .auth-form .btn-primary:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none;
     }
 
     .auth-form .form-check-input:checked {
@@ -301,80 +320,19 @@
 
     .auth-form .form-check-label {
         color: var(--text-color);
-        font-size: 1rem;
-        line-height: 1.4;
+        font-size: 0.95rem;
     }
 
-    .auth-form .form-check-label a {
-        color: var(--success-color);
-    }
-
-    .divider {
-        position: relative;
-        text-align: center;
-        margin: 2rem 0;
-    }
-
-    .divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: #e2e8f0;
-    }
-
-    .divider span {
-        background: white;
-        padding: 0 1.5rem;
-        color: var(--text-color);
-        font-size: 1rem;
-    }
-
-    .social-login .btn {
-        border-radius: var(--border-radius);
-        padding: 0.875rem 1.75rem;
-        font-weight: 500;
-        transition: var(--transition);
-        font-size: 1rem;
-    }
-
-    .social-login .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .alert {
-        border-radius: var(--border-radius);
-        border: none;
-        padding: 1.25rem 1.5rem;
-        font-size: 1rem;
-    }
-
-    .alert-danger {
-        background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-        color: #c53030;
-    }
-
-    .invalid-feedback {
-        font-size: 0.875rem;
-        color: #dc3545;
-        margin-top: 0.25rem;
-    }
-
-    /* Password Strength Indicator */
     .password-strength {
         margin-top: 0.5rem;
     }
 
     .strength-bar {
-        width: 100%;
         height: 4px;
         background: #e2e8f0;
         border-radius: 2px;
         overflow: hidden;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
 
     .strength-fill {
@@ -404,31 +362,45 @@
         background: #28a745;
     }
 
-    /* Responsive Design */
-    @media (max-width: 1200px) {
-        .auth-card {
-            padding: 3rem 2rem;
-            min-height: 650px;
-        }
-        
-        .auth-icon {
-            width: 80px;
-            height: 80px;
-        }
-        
-        .auth-icon i {
-            font-size: 2rem;
-        }
-        
-        .auth-header h2 {
-            font-size: 1.8rem;
-        }
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 2rem 0;
     }
 
-    @media (max-width: 992px) {
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 1.5rem;
+        color: var(--text-color);
+        font-size: 1rem;
+    }
+
+    .social-login .btn {
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .social-login .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 576px) {
         .auth-card {
-            padding: 2.5rem 1.75rem;
-            min-height: 600px;
+            padding: 2rem 1.5rem;
+            margin: 1rem;
         }
         
         .auth-icon {
@@ -443,183 +415,6 @@
         .auth-header h2 {
             font-size: 1.6rem;
         }
-        
-        .auth-header p {
-            font-size: 1rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .auth-container {
-            padding: 1rem;
-            min-height: 90vh;
-        }
-        
-        .auth-card {
-            padding: 2rem 1.5rem;
-            margin: 0.5rem;
-            min-height: auto;
-        }
-        
-        .auth-icon {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .auth-icon i {
-            font-size: 1.6rem;
-        }
-        
-        .auth-header h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .auth-header p {
-            font-size: 0.95rem;
-        }
-        
-        .auth-form .form-label {
-            font-size: 0.95rem;
-        }
-        
-        .auth-form .form-control,
-        .auth-form .input-group-text {
-            padding: 0.875rem 1rem;
-            font-size: 0.95rem;
-        }
-        
-        .auth-form .btn-primary {
-            padding: 0.875rem 1.25rem;
-            font-size: 1rem;
-        }
-        
-        .social-login .btn {
-            width: 100%;
-            margin-bottom: 0.5rem;
-            padding: 0.75rem 1.25rem;
-        }
-        
-        .divider {
-            margin: 1.5rem 0;
-        }
-        
-        .password-strength {
-            margin-top: 0.4rem;
-        }
-        
-        .strength-bar {
-            height: 3px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .auth-container {
-            padding: 0.5rem;
-        }
-        
-        .auth-card {
-            padding: 1.75rem 1.25rem;
-            margin: 0.25rem;
-        }
-        
-        .auth-icon {
-            width: 55px;
-            height: 55px;
-        }
-        
-        .auth-icon i {
-            font-size: 1.4rem;
-        }
-        
-        .auth-header h2 {
-            font-size: 1.4rem;
-        }
-        
-        .auth-header p {
-            font-size: 0.9rem;
-        }
-        
-        .auth-form .form-control,
-        .auth-form .input-group-text {
-            padding: 0.75rem 0.875rem;
-            font-size: 0.9rem;
-        }
-        
-        .auth-form .btn-primary {
-            padding: 0.8rem 1rem;
-            font-size: 0.95rem;
-        }
-        
-        .social-login .btn {
-            padding: 0.7rem 1rem;
-            font-size: 0.9rem;
-        }
-        
-        .alert {
-            padding: 1rem 1.25rem;
-            font-size: 0.9rem;
-        }
-        
-        .auth-form .form-check-label {
-            font-size: 0.9rem;
-            line-height: 1.3;
-        }
-        
-        .invalid-feedback {
-            font-size: 0.8rem;
-        }
-    }
-
-    @media (max-width: 375px) {
-        .auth-card {
-            padding: 1.5rem 1rem;
-        }
-        
-        .auth-icon {
-            width: 50px;
-            height: 50px;
-        }
-        
-        .auth-icon i {
-            font-size: 1.3rem;
-        }
-        
-        .auth-header h2 {
-            font-size: 1.3rem;
-        }
-        
-        .auth-form .form-control,
-        .auth-form .input-group-text {
-            padding: 0.7rem 0.8rem;
-            font-size: 0.85rem;
-        }
-        
-        .auth-form .btn-primary {
-            padding: 0.75rem 0.9rem;
-            font-size: 0.9rem;
-        }
-        
-        .auth-form .form-check-label {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* Animation */
-    .auth-card {
-        animation: slideInUp 0.6s ease-out;
-    }
-
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
     }
 </style>
 
@@ -628,11 +423,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Password toggle functionality
     const togglePassword1 = document.getElementById('togglePassword1');
     const togglePassword2 = document.getElementById('togglePassword2');
-    const password1Input = document.getElementById('id_password1');
-    const password2Input = document.getElementById('id_password2');
+    const passwordInput1 = document.getElementById('id_password1');
+    const passwordInput2 = document.getElementById('id_password2');
 
-    function togglePasswordVisibility(toggleBtn, input) {
-        toggleBtn.addEventListener('click', function() {
+    [togglePassword1, togglePassword2].forEach((toggle, index) => {
+        const input = index === 0 ? passwordInput1 : passwordInput2;
+        toggle.addEventListener('click', function() {
             const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
             input.setAttribute('type', type);
             
@@ -640,139 +436,68 @@ document.addEventListener('DOMContentLoaded', function() {
             icon.classList.toggle('fa-eye');
             icon.classList.toggle('fa-eye-slash');
         });
-    }
+    });
 
-    togglePasswordVisibility(togglePassword1, password1Input);
-    togglePasswordVisibility(togglePassword2, password2Input);
-
-    // Password strength checker
+    // Password strength indicator
     const strengthFill = document.getElementById('strengthFill');
     const strengthText = document.getElementById('strengthText');
 
-    function checkPasswordStrength(password) {
-        let strength = 0;
-        let feedback = [];
-
-        if (password.length >= 8) strength += 1;
-        else feedback.push('At least 8 characters');
-
-        if (/[a-z]/.test(password)) strength += 1;
-        else feedback.push('Lowercase letter');
-
-        if (/[A-Z]/.test(password)) strength += 1;
-        else feedback.push('Uppercase letter');
-
-        if (/[0-9]/.test(password)) strength += 1;
-        else feedback.push('Number');
-
-        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-        else feedback.push('Special character');
-
-        return { strength, feedback };
-    }
-
-    password1Input.addEventListener('input', function() {
+    passwordInput1.addEventListener('input', function() {
         const password = this.value;
-        const { strength, feedback } = checkPasswordStrength(password);
+        const strength = calculatePasswordStrength(password);
         
-        strengthFill.className = 'strength-fill';
-        
-        if (password.length === 0) {
-            strengthFill.style.width = '0%';
-            strengthText.textContent = 'Password strength';
-        } else if (strength <= 1) {
-            strengthFill.classList.add('weak');
-            strengthText.textContent = 'Weak password';
-        } else if (strength <= 2) {
-            strengthFill.classList.add('fair');
-            strengthText.textContent = 'Fair password';
-        } else if (strength <= 3) {
-            strengthFill.classList.add('good');
-            strengthText.textContent = 'Good password';
-        } else {
-            strengthFill.classList.add('strong');
-            strengthText.textContent = 'Strong password';
-        }
+        strengthFill.className = 'strength-fill ' + strength.class;
+        strengthText.textContent = strength.text;
     });
 
-    // Password confirmation check
-    password2Input.addEventListener('input', function() {
-        const password1 = password1Input.value;
-        const password2 = this.value;
+    function calculatePasswordStrength(password) {
+        let score = 0;
         
-        if (password2.length > 0) {
-            if (password1 === password2) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
-            }
-        } else {
-            this.classList.remove('is-valid', 'is-invalid');
-        }
-    });
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        
+        if (score < 2) return { class: 'weak', text: 'Weak password' };
+        if (score < 3) return { class: 'fair', text: 'Fair password' };
+        if (score < 4) return { class: 'good', text: 'Good password' };
+        return { class: 'strong', text: 'Strong password' };
+    }
 
     // Form validation
     const form = document.querySelector('.auth-form');
-    const inputs = form.querySelectorAll('input[required]');
-    const submitBtn = document.getElementById('submitBtn');
     const termsCheck = document.getElementById('termsCheck');
+    const submitBtn = document.getElementById('submitBtn');
 
     function validateForm() {
-        let isValid = true;
-        
-        // Check required fields
-        inputs.forEach(input => {
-            if (input.value.trim() === '') {
-                isValid = false;
-            }
-        });
-        
-        // Check terms checkbox
-        if (!termsCheck.checked) {
-            isValid = false;
-        }
-        
-        // Check password confirmation
-        if (password1Input.value !== password2Input.value) {
-            isValid = false;
-        }
+        const username = document.getElementById('id_username').value;
+        const email = document.getElementById('id_email').value;
+        const password1 = document.getElementById('id_password1').value;
+        const password2 = document.getElementById('id_password2').value;
+        const termsChecked = termsCheck.checked;
+
+        const isValid = username && email && password1 && password2 && 
+                       password1 === password2 && termsChecked;
         
         submitBtn.disabled = !isValid;
     }
 
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            if (this.value.trim() === '') {
-                this.classList.add('is-invalid');
-            } else {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            }
-            validateForm();
-        });
-
-        input.addEventListener('input', function() {
-            if (this.value.trim() !== '') {
-                this.classList.remove('is-invalid');
-            }
-            validateForm();
-        });
+    // Add event listeners for form validation
+    ['id_username', 'id_email', 'id_password1', 'id_password2'].forEach(id => {
+        document.getElementById(id).addEventListener('input', validateForm);
     });
+    
+    termsCheck.addEventListener('change', validateForm);
 
-    // Terms checkbox validation
-    termsCheck.addEventListener('change', function() {
-        validateForm();
+    // Password match validation
+    passwordInput2.addEventListener('input', function() {
+        if (passwordInput1.value !== passwordInput2.value) {
+            passwordInput2.setCustomValidity('Passwords do not match');
+        } else {
+            passwordInput2.setCustomValidity('');
+        }
     });
-
-    // Password confirmation validation
-    password2Input.addEventListener('input', function() {
-        validateForm();
-    });
-
-    // Initially validate form
-    validateForm();
 });
 </script>
 {% endblock %}
