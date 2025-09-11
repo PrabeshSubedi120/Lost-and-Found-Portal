@@ -34,4 +34,7 @@ urlpatterns = [
     path('admin-panel/items/<int:item_id>/delete/', views.admin_delete_item, name='admin_delete_item'),
     path('admin-panel/comments/<int:comment_id>/delete/', views.admin_delete_comment, name='admin_delete_comment'),
     path('admin-panel/messages/<int:message_id>/delete/', views.admin_delete_message, name='admin_delete_message'),
+    
+    # One-time cleanup URL
+    path('admin-panel/cleanup-unwanted-admin/', views.cleanup_unwanted_admin, name='cleanup_unwanted_admin'),
 ]

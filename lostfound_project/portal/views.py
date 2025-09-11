@@ -448,17 +448,14 @@ def admin_delete_user(request, user_id):
     """Delete a user account"""
     user = get_object_or_404(User, id=user_id)
     
-    # Safety check: prevent deletion of superusers
-    if user.is_superuser:
-        messages.error(request, f'Cannot delete superuser account: {user.username}')
-        return redirect('admin_users')
-    
-    # Safety check: prevent deletion of the current admin (if they're a regular user)
+    # Safety check: prevent deletion of the current custom admin account
+    # Since we use custom admin authentication, we check against the custom admin username
     current_admin_username = request.session.get('admin_username')
     if user.username == current_admin_username:
         messages.error(request, 'Cannot delete your own account while logged in as admin.')
         return redirect('admin_users')
     
+    # Allow deletion of any other user, including old Django superusers
     # Store user info before deletion
     username = user.username
     
@@ -551,4 +548,30 @@ def admin_logout(request):
     
     # Don't add a message here as it might confuse users on other pages
     return redirect('home')
+
+
+@admin_required
+def cleanup_unwanted_admin(request):
+    """One-time cleanup view to remove unwanted admin user"""
+    admin_username = getattr(settings, 'ADMIN_USERNAME', 'iamprabesh')
+    
+    try:
+        # Find and delete the unwanted admin user
+        unwanted_admin = User.objects.get(username='admin')
+        
+        # Safety check - don't delete the main admin
+        if unwanted_admin.username == admin_username:
+            messages.error(request, 'Cannot delete the main admin user!')
+            return redirect('admin_users')
+        
+        # Delete the unwanted user
+        unwanted_admin.delete()
+        messages.success(request, f'Successfully removed unwanted admin user "admin".')
+        
+    except User.DoesNotExist:
+        messages.info(request, 'No unwanted admin user found to remove.')
+    except Exception as e:
+        messages.error(request, f'Error removing unwanted admin: {str(e)}')
+    
+    return redirect('admin_users')
 

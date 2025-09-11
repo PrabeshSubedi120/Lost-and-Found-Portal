@@ -115,7 +115,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if not user.is_superuser %}
+                                        {% if user.username != request.session.admin_username %}
                                         <div class="d-flex gap-1">
                                             <button class="btn btn-sm btn-{% if user.is_active %}warning{% else %}success{% endif %}" 
                                                     onclick="toggleUserStatus({{ user.id }}, '{{ user.username|escapejs }}', '{{ user.email|escapejs }}', {{ user.is_active|yesno:'true,false' }})"
@@ -129,7 +129,7 @@
                                             </button>
                                         </div>
                                         {% else %}
-                                        <small class="text-muted">Superuser - Protected</small>
+                                        <small class="text-muted">Current Admin - Protected</small>
                                         {% endif %}
                                     </td>
                                 </tr>
