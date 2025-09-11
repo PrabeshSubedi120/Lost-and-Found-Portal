@@ -8,5 +8,4 @@ cd lostfound_project
 python manage.py collectstatic --noinput
 python manage.py migrate
 
-# Create superuser if it doesn't exist (non-interactive)
-echo "from django.contrib.auth.models import User; User.objects.filter(is_superuser=True).exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin123456')" | python manage.py shell
+echo "Build completed successfully!"

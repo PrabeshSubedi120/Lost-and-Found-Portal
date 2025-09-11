@@ -14,6 +14,12 @@ services:
         value: 4
       - key: DJANGO_SETTINGS_MODULE
         value: lostfound_project.settings_production
+      - key: ADMIN_USERNAME
+        value: iamprabesh
+      - key: ADMIN_PASSWORD
+        value: iamprabesh@123
+      - key: ADMIN_EMAIL
+        value: iamprabesh2003@gmail.com
       - key: DATABASE_URL
         fromDatabase:
           name: lostfound-db

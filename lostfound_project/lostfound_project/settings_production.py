@@ -6,12 +6,18 @@ from .settings import *
 import os
 from pathlib import Path
 import dj_database_url
+from decouple import config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+
+# Admin Credentials from environment (for production)
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@lostfoundportal.com')
 
 # Production hosts - Render will provide the actual domain
 ALLOWED_HOSTS = [
@@ -31,7 +37,10 @@ DATABASES = {
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] if os.path.exists(os.path.join(BASE_DIR, 'static')) else []
+
+# WhiteNoise configuration for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'

@@ -32,7 +32,7 @@ ADMIN_USERNAME = config('ADMIN_USERNAME', default='admin')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='admin123')
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@lostfoundportal.com')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
